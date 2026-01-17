@@ -311,6 +311,17 @@
     <script src="audit-api.js"></script>
     <script>
         let currentAuditData = {};
+        let auditAPI;
+
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Please log in first to create audits');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
 
         function calculateCarbonAudit() {
             const facilityName = document.getElementById('facilityName').value;
@@ -407,6 +418,13 @@
         document.getElementById('waterConsumption').addEventListener('change', calculateCarbonAudit);
         document.getElementById('wasteGenerated').addEventListener('change', calculateCarbonAudit);
         document.getElementById('renewablePercentage').addEventListener('change', calculateCarbonAudit);
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            if (checkAuthentication()) {
+                auditAPI = new AuditAPI();
+            }
+        });
     </script>
 </body>
 </html>

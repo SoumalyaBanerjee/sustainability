@@ -491,6 +491,17 @@
     <script src="audit-api.js"></script>
     <script>
         let currentAuditData = {};
+        let auditAPI;
+
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Please log in first to create audits');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
 
         function calculateESGScore() {
             const organizationName = document.getElementById('organizationName').value;
@@ -627,6 +638,13 @@
         
         inputs.forEach(id => {
             document.getElementById(id).addEventListener('change', calculateESGScore);
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            if (checkAuthentication()) {
+                auditAPI = new AuditAPI();
+            }
         });
     </script>
 </body>

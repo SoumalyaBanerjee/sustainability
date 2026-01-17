@@ -365,6 +365,18 @@
             esg: []
         };
 
+        let auditAPI;
+
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Please log in first to view and create audits');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
         function switchTab(tab) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -376,6 +388,11 @@
         }
 
         async function loadAudits() {
+            // Check authentication first
+            if (!checkAuthentication()) {
+                return;
+            }
+
             try {
                 // Load Carbon Audits
                 const carbonResponse = await auditAPI.listCarbonAudits();
@@ -556,8 +573,11 @@
             alert(`View functionality for ${type} audit ${auditId} would be implemented here`);
         }
 
-        // Load audits on page load
-        window.addEventListener('load', loadAudits);
+        // Initialize API and load audits on page load
+        window.addEventListener('load', function() {
+            auditAPI = new AuditAPI();
+            loadAudits();
+        });
     </script>
 </body>
 </html>
