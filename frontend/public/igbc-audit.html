@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGBC Green Building Audit | Sustainability</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .audit-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .audit-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+        }
+
+        .score-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-input input {
+            flex: 1;
+            max-width: 100px;
+        }
+
+        .score-input span {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .rating-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .rating-platinum {
+            background: #34495e;
+            color: #ecf0f1;
+        }
+
+        .rating-gold {
+            background: #f39c12;
+            color: white;
+        }
+
+        .rating-silver {
+            background: #bdc3c7;
+            color: #333;
+        }
+
+        .rating-green {
+            background: #27ae60;
+            color: white;
+        }
+
+        .rating-notrated {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .result-value {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .total-score {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            margin-top: 20px;
+        }
+
+        .total-score h2 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1>🏢 IGBC Green Building Audit</h1>
+            <p>Evaluate your building's green credentials</p>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <form class="audit-form" id="igbcAuditForm">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3>📋 Building Information</h3>
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="buildingName">Building Name *</label>
+                        <input type="text" id="buildingName" required placeholder="e.g., Green Office Complex">
+                        <div class="help-text">Name of the building being audited</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="auditPeriod">Audit Period *</label>
+                        <input type="text" id="auditPeriod" required placeholder="e.g., Jan 2026 - Dec 2026">
+                        <div class="help-text">Time period for this audit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IGBC Categories -->
+            <div class="form-section">
+                <h3>⭐ IGBC Certification Categories</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">Score each category (0-100 points maximum)</p>
+
+                <div class="form-group">
+                    <label for="siteSelection">Site Selection & Planning (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="siteSelection" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="siteSelectionPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Location, accessibility, and site planning strategies</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="waterConservation">Water Conservation (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="waterConservation" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="waterConservationPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Water efficiency and management systems</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="energyConservation">Energy Conservation (Max: 15 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="energyConservation" required step="0.01" min="0" max="15" placeholder="0">
+                        <span id="energyConservationPercent">0 / 15</span>
+                    </div>
+                    <div class="help-text">Energy efficiency, renewable energy, and climate control</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="environmentProtection">Environment Protection (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="environmentProtection" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="environmentProtectionPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Ecology, habitat, and biodiversity protection</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="healthWellbeing">Health & Wellbeing (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="healthWellbeing" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="healthWellbeingPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Indoor air quality, safety, and occupant health</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="constructionPractices">Construction Practices (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="constructionPractices" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="constructionPracticesPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Sustainable materials and construction management</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="managementOperations">Management & Operations (Max: 10 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="managementOperations" required step="0.01" min="0" max="10" placeholder="0">
+                        <span id="managementOperationsPercent">0 / 10</span>
+                    </div>
+                    <div class="help-text">Building operations and maintenance practices</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="innovation">Innovation (Max: 5 points)</label>
+                    <div class="score-input">
+                        <input type="number" id="innovation" required step="0.01" min="0" max="5" placeholder="0">
+                        <span id="innovationPercent">0 / 5</span>
+                    </div>
+                    <div class="help-text">Innovative and unique green initiatives</div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="calculateIGBCScore()">Calculate Score</button>
+                <button type="button" class="btn btn-secondary" onclick="saveIGBCAudit()">Save Audit Report</button>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section">
+            <h2>📊 IGBC Certification Results</h2>
+
+            <div id="ratingBadge" class="rating-badge"></div>
+
+            <div class="result-item">
+                <span class="result-label">Site Selection & Planning:</span>
+                <span class="result-value"><span id="resultSiteSelection">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Water Conservation:</span>
+                <span class="result-value"><span id="resultWaterConservation">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Energy Conservation:</span>
+                <span class="result-value"><span id="resultEnergyConservation">0</span> / 15</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Environment Protection:</span>
+                <span class="result-value"><span id="resultEnvironmentProtection">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Health & Wellbeing:</span>
+                <span class="result-value"><span id="resultHealthWellbeing">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Construction Practices:</span>
+                <span class="result-value"><span id="resultConstructionPractices">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Management & Operations:</span>
+                <span class="result-value"><span id="resultManagementOperations">0</span> / 10</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Innovation:</span>
+                <span class="result-value"><span id="resultInnovation">0</span> / 5</span>
+            </div>
+
+            <div class="total-score">
+                <h2>Total Score</h2>
+                <div class="score-value"><span id="totalScore">0</span> / 100</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="audit-api.js"></script>
+    <script>
+        let currentAuditData = {};
+
+        function calculateIGBCScore() {
+            const buildingName = document.getElementById('buildingName').value;
+            const auditPeriod = document.getElementById('auditPeriod').value;
+
+            if (!buildingName || !auditPeriod) {
+                showMessage('Please fill in building name and audit period', 'error');
+                return;
+            }
+
+            const siteSelection = parseFloat(document.getElementById('siteSelection').value) || 0;
+            const waterConservation = parseFloat(document.getElementById('waterConservation').value) || 0;
+            const energyConservation = parseFloat(document.getElementById('energyConservation').value) || 0;
+            const environmentProtection = parseFloat(document.getElementById('environmentProtection').value) || 0;
+            const healthWellbeing = parseFloat(document.getElementById('healthWellbeing').value) || 0;
+            const constructionPractices = parseFloat(document.getElementById('constructionPractices').value) || 0;
+            const managementOperations = parseFloat(document.getElementById('managementOperations').value) || 0;
+            const innovation = parseFloat(document.getElementById('innovation').value) || 0;
+
+            // Store data for saving
+            currentAuditData = {
+                site_selection: siteSelection,
+                water_conservation: waterConservation,
+                energy_conservation: energyConservation,
+                environment_protection: environmentProtection,
+                health_wellbeing: healthWellbeing,
+                construction_practices: constructionPractices,
+                management_operations: managementOperations,
+                innovation: innovation
+            };
+
+            const totalScore = siteSelection + waterConservation + energyConservation + 
+                              environmentProtection + healthWellbeing + constructionPractices + 
+                              managementOperations + innovation;
+
+            let rating = 'NOT RATED';
+            if (totalScore >= 85) rating = 'PLATINUM';
+            else if (totalScore >= 70) rating = 'GOLD';
+            else if (totalScore >= 55) rating = 'SILVER';
+            else if (totalScore >= 40) rating = 'GREEN';
+
+            // Display results
+            document.getElementById('resultSiteSelection').textContent = siteSelection.toFixed(2);
+            document.getElementById('resultWaterConservation').textContent = waterConservation.toFixed(2);
+            document.getElementById('resultEnergyConservation').textContent = energyConservation.toFixed(2);
+            document.getElementById('resultEnvironmentProtection').textContent = environmentProtection.toFixed(2);
+            document.getElementById('resultHealthWellbeing').textContent = healthWellbeing.toFixed(2);
+            document.getElementById('resultConstructionPractices').textContent = constructionPractices.toFixed(2);
+            document.getElementById('resultManagementOperations').textContent = managementOperations.toFixed(2);
+            document.getElementById('resultInnovation').textContent = innovation.toFixed(2);
+            document.getElementById('totalScore').textContent = totalScore.toFixed(2);
+
+            // Update rating badge
+            const ratingBadge = document.getElementById('ratingBadge');
+            ratingBadge.textContent = `${rating} CERTIFIED`;
+            ratingBadge.className = `rating-badge rating-${rating.toLowerCase()}`;
+
+            document.getElementById('resultsSection').classList.add('show');
+            showMessage('Score calculated successfully!', 'success');
+        }
+
+        async function saveIGBCAudit() {
+            const buildingName = document.getElementById('buildingName').value;
+            const auditPeriod = document.getElementById('auditPeriod').value;
+
+            if (!buildingName || !auditPeriod) {
+                showMessage('Please fill in building name and audit period', 'error');
+                return;
+            }
+
+            if (Object.keys(currentAuditData).length === 0) {
+                showMessage('Please calculate score first', 'error');
+                return;
+            }
+
+            try {
+                const response = await auditAPI.createIGBCAudit(buildingName, auditPeriod, currentAuditData);
+                
+                if (response.success) {
+                    showMessage('✅ ' + response.message, 'success');
+                    document.getElementById('igbcAuditForm').reset();
+                    document.getElementById('resultsSection').classList.remove('show');
+                    currentAuditData = {};
+                } else {
+                    showMessage('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error saving audit: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = `message show ${type}`;
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 5000);
+        }
+
+        // Real-time calculation
+        const categoryInputs = ['siteSelection', 'waterConservation', 'energyConservation', 
+                               'environmentProtection', 'healthWellbeing', 'constructionPractices', 
+                               'managementOperations', 'innovation'];
+        
+        categoryInputs.forEach(id => {
+            document.getElementById(id).addEventListener('change', calculateIGBCScore);
+        });
+    </script>
+</body>
+</html>

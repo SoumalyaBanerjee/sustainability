@@ -7,6 +7,9 @@ from app.models.user import User
 from app.models.otp import OTP
 from app.models.email_verification import EmailVerification
 from app.models.two_factor_auth import TwoFactorAuth
+from app.models.carbon_emission_audit import CarbonEmissionAudit
+from app.models.igbc_green_building_audit import IGBCGreenBuildingAudit
+from app.models.esg_audit import ESGAudit
 from app.db.mongo import MongoDB
 
 # Setup logging
@@ -24,6 +27,9 @@ def init_db():
         OTP.create_indexes()
         EmailVerification.create_indexes()
         TwoFactorAuth.create_indexes()
+        CarbonEmissionAudit.create_indexes()
+        IGBCGreenBuildingAudit.create_indexes()
+        ESGAudit.create_indexes()
         logger.info("Database indexes created successfully")
     except Exception as e:
         logger.error(f"Failed to create indexes: {str(e)}")

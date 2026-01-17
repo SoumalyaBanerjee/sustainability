@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESG Audit | Sustainability</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .audit-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .audit-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #16a085;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #16a085;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #16a085;
+            box-shadow: 0 0 5px rgba(22, 160, 133, 0.3);
+        }
+
+        .score-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-input input {
+            flex: 1;
+            max-width: 100px;
+        }
+
+        .score-input span {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .esg-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .esg-card {
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+
+        .esg-card h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .esg-card .score {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .esg-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .e-card {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .s-card {
+            background: linear-gradient(135deg, #2980b9, #1e5f7d);
+        }
+
+        .g-card {
+            background: linear-gradient(135deg, #8e44ad, #6c3483);
+        }
+
+        .rating-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .rating-excellent {
+            background: #27ae60;
+            color: white;
+        }
+
+        .rating-very-good {
+            background: #3498db;
+            color: white;
+        }
+
+        .rating-good {
+            background: #f39c12;
+            color: white;
+        }
+
+        .rating-adequate {
+            background: #e67e22;
+            color: white;
+        }
+
+        .rating-needs-improvement {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .result-value {
+            color: #16a085;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #16a085, #138d75);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #138d75, #0e6251);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 1024px) {
+            .input-row-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+            .esg-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .input-row,
+            .input-row-3,
+            .esg-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1>🌱 ESG (Environmental, Social, Governance) Audit</h1>
+            <p>Comprehensive sustainability and governance assessment</p>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <form class="audit-form" id="esgAuditForm">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3>📋 Organization Information</h3>
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="organizationName">Organization Name *</label>
+                        <input type="text" id="organizationName" required placeholder="e.g., Tech Company XYZ">
+                        <div class="help-text">Name of the organization being audited</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="auditPeriod">Audit Period *</label>
+                        <input type="text" id="auditPeriod" required placeholder="e.g., Jan 2026 - Dec 2026">
+                        <div class="help-text">Time period for this audit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENVIRONMENTAL Section -->
+            <div class="form-section">
+                <h3>🌍 Environmental Metrics</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">Rate each parameter (0-100)</p>
+
+                <div class="input-row-3">
+                    <div class="form-group">
+                        <label for="carbonManagement">Carbon Management (0-100)</label>
+                        <input type="number" id="carbonManagement" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Carbon footprint reduction strategies</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="waterManagement">Water Management (0-100)</label>
+                        <input type="number" id="waterManagement" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Water conservation and efficiency</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="wasteManagement">Waste Management (0-100)</label>
+                        <input type="number" id="wasteManagement" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Waste reduction and recycling programs</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="renewableEnergyE">Renewable Energy (0-100)</label>
+                    <input type="number" id="renewableEnergyE" required step="0.01" min="0" max="100" placeholder="0">
+                    <div class="help-text">Use of renewable energy sources</div>
+                </div>
+            </div>
+
+            <!-- SOCIAL Section -->
+            <div class="form-section">
+                <h3>👥 Social Metrics</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">Rate each parameter (0-100)</p>
+
+                <div class="input-row-3">
+                    <div class="form-group">
+                        <label for="employeeSatisfaction">Employee Satisfaction (0-100)</label>
+                        <input type="number" id="employeeSatisfaction" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Employee engagement and satisfaction levels</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="communityImpact">Community Impact (0-100)</label>
+                        <input type="number" id="communityImpact" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Community development and social programs</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="healthSafety">Health & Safety (0-100)</label>
+                        <input type="number" id="healthSafety" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Workplace health and safety standards</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="diversityInclusion">Diversity & Inclusion (0-100)</label>
+                    <input type="number" id="diversityInclusion" required step="0.01" min="0" max="100" placeholder="0">
+                    <div class="help-text">Diversity in workforce and leadership</div>
+                </div>
+            </div>
+
+            <!-- GOVERNANCE Section -->
+            <div class="form-section">
+                <h3>⚖️ Governance Metrics</h3>
+                <p style="color: #7f8c8d; margin-bottom: 20px;">Rate each parameter (0-100)</p>
+
+                <div class="input-row-3">
+                    <div class="form-group">
+                        <label for="ethicsCompliance">Ethics & Compliance (0-100)</label>
+                        <input type="number" id="ethicsCompliance" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Ethical practices and regulatory compliance</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="auditControls">Audit & Controls (0-100)</label>
+                        <input type="number" id="auditControls" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Internal controls and audit systems</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="boardDiversity">Board Diversity (0-100)</label>
+                        <input type="number" id="boardDiversity" required step="0.01" min="0" max="100" placeholder="0">
+                        <div class="help-text">Board diversity and independence</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="transparency">Transparency & Reporting (0-100)</label>
+                    <input type="number" id="transparency" required step="0.01" min="0" max="100" placeholder="0">
+                    <div class="help-text">Financial and non-financial transparency</div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="calculateESGScore()">Calculate ESG Score</button>
+                <button type="button" class="btn btn-secondary" onclick="saveESGAudit()">Save Audit Report</button>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section">
+            <h2>📊 ESG Assessment Results</h2>
+
+            <div class="esg-cards">
+                <div class="esg-card e-card">
+                    <h3>Environmental</h3>
+                    <div class="score"><span id="envScore">0</span>/100</div>
+                    <div class="label">E Score</div>
+                </div>
+                <div class="esg-card s-card">
+                    <h3>Social</h3>
+                    <div class="score"><span id="socScore">0</span>/100</div>
+                    <div class="label">S Score</div>
+                </div>
+                <div class="esg-card g-card">
+                    <h3>Governance</h3>
+                    <div class="score"><span id="govScore">0</span>/100</div>
+                    <div class="label">G Score</div>
+                </div>
+            </div>
+
+            <div id="ratingBadge" class="rating-badge"></div>
+
+            <h3 style="color: #16a085; margin-top: 30px; margin-bottom: 15px;">Overall ESG Score</h3>
+            <div class="result-item">
+                <span class="result-label">Overall ESG Score:</span>
+                <span class="result-value"><span id="esgScore">0</span> / 100</span>
+            </div>
+
+            <h3 style="color: #16a085; margin-top: 30px; margin-bottom: 15px;">Detailed Breakdown</h3>
+            
+            <h4 style="color: #27ae60;">Environmental Metrics</h4>
+            <div class="result-item">
+                <span class="result-label">Carbon Management:</span>
+                <span class="result-value"><span id="resultCarbon">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Water Management:</span>
+                <span class="result-value"><span id="resultWater">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Waste Management:</span>
+                <span class="result-value"><span id="resultWaste">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Renewable Energy:</span>
+                <span class="result-value"><span id="resultRenewable">0</span></span>
+            </div>
+
+            <h4 style="color: #2980b9; margin-top: 20px;">Social Metrics</h4>
+            <div class="result-item">
+                <span class="result-label">Employee Satisfaction:</span>
+                <span class="result-value"><span id="resultEmployee">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Community Impact:</span>
+                <span class="result-value"><span id="resultCommunity">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Health & Safety:</span>
+                <span class="result-value"><span id="resultHealthSafety">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Diversity & Inclusion:</span>
+                <span class="result-value"><span id="resultDiversity">0</span></span>
+            </div>
+
+            <h4 style="color: #8e44ad; margin-top: 20px;">Governance Metrics</h4>
+            <div class="result-item">
+                <span class="result-label">Ethics & Compliance:</span>
+                <span class="result-value"><span id="resultEthics">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Audit & Controls:</span>
+                <span class="result-value"><span id="resultAudit">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Board Diversity:</span>
+                <span class="result-value"><span id="resultBoardDiversity">0</span></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Transparency & Reporting:</span>
+                <span class="result-value"><span id="resultTransparency">0</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="audit-api.js"></script>
+    <script>
+        let currentAuditData = {};
+
+        function calculateESGScore() {
+            const organizationName = document.getElementById('organizationName').value;
+            const auditPeriod = document.getElementById('auditPeriod').value;
+
+            if (!organizationName || !auditPeriod) {
+                showMessage('Please fill in organization name and audit period', 'error');
+                return;
+            }
+
+            // Get all scores
+            const carbonManagement = parseFloat(document.getElementById('carbonManagement').value) || 0;
+            const waterManagement = parseFloat(document.getElementById('waterManagement').value) || 0;
+            const wasteManagement = parseFloat(document.getElementById('wasteManagement').value) || 0;
+            const renewableEnergyE = parseFloat(document.getElementById('renewableEnergyE').value) || 0;
+
+            const employeeSatisfaction = parseFloat(document.getElementById('employeeSatisfaction').value) || 0;
+            const communityImpact = parseFloat(document.getElementById('communityImpact').value) || 0;
+            const healthSafety = parseFloat(document.getElementById('healthSafety').value) || 0;
+            const diversityInclusion = parseFloat(document.getElementById('diversityInclusion').value) || 0;
+
+            const ethicsCompliance = parseFloat(document.getElementById('ethicsCompliance').value) || 0;
+            const auditControls = parseFloat(document.getElementById('auditControls').value) || 0;
+            const boardDiversity = parseFloat(document.getElementById('boardDiversity').value) || 0;
+            const transparency = parseFloat(document.getElementById('transparency').value) || 0;
+
+            // Store data for saving
+            currentAuditData = {
+                carbon_management: carbonManagement,
+                water_management: waterManagement,
+                waste_management: wasteManagement,
+                renewable_energy: renewableEnergyE,
+                employee_satisfaction: employeeSatisfaction,
+                community_impact: communityImpact,
+                health_safety: healthSafety,
+                diversity_inclusion: diversityInclusion,
+                ethics_compliance: ethicsCompliance,
+                audit_controls: auditControls,
+                board_diversity: boardDiversity,
+                transparency: transparency
+            };
+
+            // Calculate E, S, G scores (weighted averages)
+            const eScore = (carbonManagement * 0.3) + (waterManagement * 0.3) + (wasteManagement * 0.2) + (renewableEnergyE * 0.2);
+            const sScore = (employeeSatisfaction * 0.3) + (communityImpact * 0.3) + (healthSafety * 0.2) + (diversityInclusion * 0.2);
+            const gScore = (ethicsCompliance * 0.35) + (auditControls * 0.35) + (boardDiversity * 0.15) + (transparency * 0.15);
+
+            // Overall ESG score
+            const esgScore = (eScore + sScore + gScore) / 3;
+
+            // Determine rating
+            let rating = 'NEEDS IMPROVEMENT';
+            if (esgScore >= 80) rating = 'EXCELLENT';
+            else if (esgScore >= 70) rating = 'VERY GOOD';
+            else if (esgScore >= 60) rating = 'GOOD';
+            else if (esgScore >= 50) rating = 'ADEQUATE';
+
+            // Display ESG cards
+            document.getElementById('envScore').textContent = eScore.toFixed(2);
+            document.getElementById('socScore').textContent = sScore.toFixed(2);
+            document.getElementById('govScore').textContent = gScore.toFixed(2);
+
+            // Display overall score
+            document.getElementById('esgScore').textContent = esgScore.toFixed(2);
+
+            // Update rating badge
+            const ratingBadge = document.getElementById('ratingBadge');
+            ratingBadge.textContent = `${rating}: ${esgScore.toFixed(2)}/100`;
+            ratingBadge.className = `rating-badge rating-${rating.toLowerCase().replace(' ', '-')}`;
+
+            // Display detailed scores
+            document.getElementById('resultCarbon').textContent = carbonManagement.toFixed(2);
+            document.getElementById('resultWater').textContent = waterManagement.toFixed(2);
+            document.getElementById('resultWaste').textContent = wasteManagement.toFixed(2);
+            document.getElementById('resultRenewable').textContent = renewableEnergyE.toFixed(2);
+
+            document.getElementById('resultEmployee').textContent = employeeSatisfaction.toFixed(2);
+            document.getElementById('resultCommunity').textContent = communityImpact.toFixed(2);
+            document.getElementById('resultHealthSafety').textContent = healthSafety.toFixed(2);
+            document.getElementById('resultDiversity').textContent = diversityInclusion.toFixed(2);
+
+            document.getElementById('resultEthics').textContent = ethicsCompliance.toFixed(2);
+            document.getElementById('resultAudit').textContent = auditControls.toFixed(2);
+            document.getElementById('resultBoardDiversity').textContent = boardDiversity.toFixed(2);
+            document.getElementById('resultTransparency').textContent = transparency.toFixed(2);
+
+            document.getElementById('resultsSection').classList.add('show');
+            showMessage('ESG score calculated successfully!', 'success');
+        }
+
+        async function saveESGAudit() {
+            const organizationName = document.getElementById('organizationName').value;
+            const auditPeriod = document.getElementById('auditPeriod').value;
+
+            if (!organizationName || !auditPeriod) {
+                showMessage('Please fill in organization name and audit period', 'error');
+                return;
+            }
+
+            if (Object.keys(currentAuditData).length === 0) {
+                showMessage('Please calculate ESG score first', 'error');
+                return;
+            }
+
+            try {
+                const response = await auditAPI.createESGAudit(organizationName, auditPeriod, currentAuditData);
+                
+                if (response.success) {
+                    showMessage('✅ ' + response.message, 'success');
+                    document.getElementById('esgAuditForm').reset();
+                    document.getElementById('resultsSection').classList.remove('show');
+                    currentAuditData = {};
+                } else {
+                    showMessage('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error saving audit: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = `message show ${type}`;
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 5000);
+        }
+
+        // Real-time calculation
+        const inputs = ['carbonManagement', 'waterManagement', 'wasteManagement', 'renewableEnergyE',
+                       'employeeSatisfaction', 'communityImpact', 'healthSafety', 'diversityInclusion',
+                       'ethicsCompliance', 'auditControls', 'boardDiversity', 'transparency'];
+        
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('change', calculateESGScore);
+        });
+    </script>
+</body>
+</html>
