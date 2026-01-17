@@ -1,10 +1,20 @@
 """Script to check MongoDB for users."""
 
+import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-uri = "mongodb+srv://soumalyabanerjee2008_db_user:hX0KIpcUwn4srTIj@cluster0.cftgavz.mongodb.net/sustainability_db"
+# Load environment variables
+load_dotenv()
+
+uri = os.getenv('MONGODB_URI')
+if not uri:
+    print("❌ Error: MONGODB_URI not found in .env file")
+    exit(1)
+
 client = MongoClient(uri)
-db = client["sustainability_db"]
+db_name = os.getenv('MONGODB_DB_NAME', 'sustainability_db')
+db = client[db_name]
 
 print("\n" + "="*50)
 print("MongoDB User Check")
