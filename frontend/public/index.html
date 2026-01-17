@@ -151,12 +151,51 @@
                     <button class="btn btn-secondary" onclick="logout()">Logout</button>
                 </div>
                 
-                <div class="user-info">
-                    <p>Email: <strong id="dashboardEmail"></strong></p>
-                    <p>Account created: <strong id="dashboardCreatedAt"></strong></p>
+                <div class="dashboard-content">
+                    <!-- Left Sidebar Navigation -->
+                    <div class="dashboard-sidebar">
+                        <h3>Audits</h3>
+                        <nav class="audit-navigation">
+                            <a href="audits.html" class="nav-link" title="View all audits and statistics">
+                                📊 All Audits
+                            </a>
+                            <a href="carbon-audit.html" class="nav-link" title="Calculate carbon emissions">
+                                🌍 Carbon Emission
+                            </a>
+                            <a href="igbc-audit.html" class="nav-link" title="IGBC green building audit">
+                                🏢 IGBC Green Building
+                            </a>
+                            <a href="esg-audit.html" class="nav-link" title="ESG assessment">
+                                🌱 ESG Assessment
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="dashboard-main">
+                        <div class="user-info">
+                            <h3>Account Information</h3>
+                            <p>Email: <strong id="dashboardEmail"></strong></p>
+                            <p>Account created: <strong id="dashboardCreatedAt"></strong></p>
+                        </div>
+
+                        <div class="quick-actions">
+                            <h3>Quick Actions</h3>
+                            <button class="btn btn-primary" onclick="window.location.href='audits.html'" style="width: 100%; margin-bottom: 10px;">
+                                📊 View All Audits
+                            </button>
+                            <button class="btn btn-primary" onclick="window.location.href='carbon-audit.html'" style="width: 100%; margin-bottom: 10px;">
+                                🌍 Create Carbon Audit
+                            </button>
+                            <button class="btn btn-primary" onclick="window.location.href='igbc-audit.html'" style="width: 100%; margin-bottom: 10px;">
+                                🏢 Create IGBC Audit
+                            </button>
+                            <button class="btn btn-primary" onclick="window.location.href='esg-audit.html'" style="width: 100%;">
+                                🌱 Create ESG Audit
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
-                <button class="btn btn-primary" onclick="switchForm('loginForm')">Return to Login</button>
             </div>
         </div>
     </div>
