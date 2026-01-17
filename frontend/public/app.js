@@ -82,6 +82,15 @@ function getUserInfo() {
 function logout() {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
+    // Call logout API
+    fetch('http://localhost:5000/api/session/logout', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+        }
+    }).catch(err => console.log('Logout API call completed'));
+    
     switchForm('loginForm');
     clearForm('loginFormElement');
     hideMessage('loginMessage');

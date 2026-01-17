@@ -19,8 +19,9 @@ def create_app():
     JWTManager(app)
     
     # Register blueprints
-    from app.routes import auth, user
+    from app.routes import auth, user, session
     app.register_blueprint(auth.bp)
     app.register_blueprint(user.bp)
+    app.register_blueprint(session.bp)
     
     return app

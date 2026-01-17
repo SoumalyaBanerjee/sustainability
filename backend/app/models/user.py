@@ -23,13 +23,15 @@ class User:
         collection.create_index("created_at")
     
     @classmethod
-    def create_user(cls, email, hashed_password):
+    def create_user(cls, email, hashed_password, is_verified=True):
         """Create a new user."""
         collection = cls.get_collection()
         user_data = {
             "email": email,
             "password": hashed_password,
             "is_active": True,
+            "is_verified": is_verified,
+            "two_factor_enabled": False,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }
@@ -75,6 +77,53 @@ class User:
             "id": str(user_doc["_id"]),
             "email": user_doc["email"],
             "is_active": user_doc.get("is_active", True),
+            "is_verified": user_doc.get("is_verified", True),
+            "two_factor_enabled": user_doc.get("two_factor_enabled", False),
             "created_at": user_doc.get("created_at"),
             "updated_at": user_doc.get("updated_at")
         }
+    
+    @classmethod
+    def mark_verified(cls, user_id):
+        """Mark user email as verified."""
+        collection = cls.get_collection()
+        result = collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "is_verified": True,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        return result.modified_count > 0
+    
+    @classmethod
+    def enable_2fa(cls, user_id):
+        """Enable 2FA for user."""
+        collection = cls.get_collection()
+        result = collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "two_factor_enabled": True,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        return result.modified_count > 0
+    
+    @classmethod
+    def disable_2fa(cls, user_id):
+        """Disable 2FA for user."""
+        collection = cls.get_collection()
+        result = collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "two_factor_enabled": False,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        return result.modified_count > 0

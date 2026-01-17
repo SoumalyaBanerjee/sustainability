@@ -5,6 +5,8 @@ import logging
 from app import create_app
 from app.models.user import User
 from app.models.otp import OTP
+from app.models.email_verification import EmailVerification
+from app.models.two_factor_auth import TwoFactorAuth
 from app.db.mongo import MongoDB
 
 # Setup logging
@@ -20,6 +22,8 @@ def init_db():
     try:
         User.create_indexes()
         OTP.create_indexes()
+        EmailVerification.create_indexes()
+        TwoFactorAuth.create_indexes()
         logger.info("Database indexes created successfully")
     except Exception as e:
         logger.error(f"Failed to create indexes: {str(e)}")

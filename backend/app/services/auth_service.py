@@ -2,8 +2,10 @@
 
 from app.models.user import User
 from app.models.otp import OTP
+from app.models.email_verification import EmailVerification
+from app.models.two_factor_auth import TwoFactorAuth
 from app.utils.password import hash_password, verify_password
-from app.utils.email import send_otp_email
+from app.utils.email import send_otp_email, send_verification_email
 from app.utils.otp_generator import generate_otp
 from app.utils.validators import validate_email_format, validate_password, validate_otp
 
@@ -37,16 +39,58 @@ class AuthService:
         if existing_user:
             return {"success": False, "message": "User already exists"}
         
-        # Hash password and create user
+        # Hash password and create user (not verified yet)
         hashed_password = hash_password(password)
-        user_id = User.create_user(email, hashed_password)
+        user_id = User.create_user(email, hashed_password, is_verified=False)
+        
+        # Generate email verification token
+        verification_token = EmailVerification.create_verification(email)
+        
+        # Send verification email
+        email_sent = send_verification_email(email, verification_token)
+        
+        if not email_sent:
+            return {
+                "success": True,
+                "message": "User registered. Please check your email to verify (email system may be down)",
+                "user_id": user_id,
+                "email": email
+            }
         
         return {
             "success": True,
-            "message": "User registered successfully",
+            "message": "User registered successfully. Please verify your email.",
             "user_id": user_id,
             "email": email
         }
+    
+    @staticmethod
+    def verify_email(token: str) -> dict:
+        """Verify user email with token.
+        
+        Args:
+            token: Verification token
+            
+        Returns:
+            Result dictionary with status
+        """
+        # Find verification record
+        verification = EmailVerification.find_by_token(token)
+        if not verification:
+            return {"success": False, "message": "Invalid or expired verification token"}
+        
+        email = verification.get("email")
+        user = User.find_by_email(email)
+        
+        if not user:
+            return {"success": False, "message": "User not found"}
+        
+        # Mark email as verified
+        User.mark_verified(str(user["_id"]))
+        EmailVerification.mark_verified(token)
+        
+        return {"success": True, "message": "Email verified successfully"}
+    
     
     @staticmethod
     def login_user(email: str, password: str) -> dict:
