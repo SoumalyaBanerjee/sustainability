@@ -1,0 +1,6 @@
+# Core dependencies
+python-dotenv>=1.0.0
+pandas>=1.5.0
+numpy>=1.24.0
+
+# Development dependencies (install with: pip install -r requirements.txt -r requirements-dev.txt)
