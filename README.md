@@ -133,7 +133,413 @@ python tests/check_mongodb.py
 ### Test API Endpoints
 Use Postman or the frontend application to test all endpoints.
 
-## 📚 Documentation
+## � Understanding the Complete Flow
+
+### Overview
+This section explains how data flows from the frontend through the backend to the database for every user action. Follow along to understand how the authentication system works end-to-end.
+
+### 1️⃣ Registration Flow
+
+**User Action**: User enters email, password, and clicks "Register"
+
+```
+FRONTEND (index.html)
+    ↓
+    └─→ app.js validates password strength
+        ├─ Check: 8+ chars, uppercase, lowercase, digit, special char
+        └─ If invalid → Show error, stop
+        
+        If valid → Sends POST to /api/auth/register with:
+        {
+          "email": "user@example.com",
+          "password": "SecurePass123!"
+        }
+        
+BACKEND (routes/auth.py)
+    ↓
+    └─→ Receives registration request
+        ├─ Validates input using utils/validators.py
+        ├─ Checks if email already exists in db.users
+        └─ If exists → Return error "Email already registered"
+        
+        If new email:
+        ├─ Hash password using utils/password.py (bcrypt, 12 rounds)
+        │  Result: $2b$12$...(hashed)
+        ├─ Call services/auth_service.py → register_user()
+        └─ Create user in MongoDB:
+            {
+              email: "user@example.com",
+              password: "$2b$12$...",
+              is_active: true,
+              is_verified: false,        ← NOT YET VERIFIED
+              two_factor_enabled: false,
+              created_at: 2026-01-18T...
+            }
+        
+DATABASE (MongoDB Atlas)
+    ↓
+    └─→ User inserted into db.users collection
+        
+        CREATE VERIFICATION TOKEN:
+        ├─ Generate 32-byte secure token
+        ├─ Set expiry to 24 hours
+        └─ Insert into db.email_verifications:
+            {
+              email: "user@example.com",
+              token: "secure_token_here",
+              is_verified: false,
+              expires_at: 2026-01-19T...  ← TTL index auto-deletes
+            }
+        
+SEND EMAIL:
+    └─→ utils/email.py → send_verification_email()
+        ├─ Connect to SMTP server
+        └─ Send link: http://localhost:8000?verify=secure_token_here
+
+FRONTEND (receives response)
+    └─→ Display: "Check your email to verify!"
+        └─ User receives email and clicks link
+```
+
+### 2️⃣ Email Verification Flow
+
+**User Action**: User clicks verification link in email
+
+```
+FRONTEND (index.html)
+    ↓
+    └─→ app.js detects URL parameter ?token=secure_token_here
+        ├─ Extracts token
+        └─ Sends POST to /api/auth/verify-email with:
+            { "token": "secure_token_here" }
+
+BACKEND (routes/auth.py)
+    ↓
+    └─→ Receives verification request
+        ├─ Query: db.email_verifications.findOne({token: "..."})
+        ├─ If not found or expired → Return error
+        ├─ If valid → Call services/auth_service.py → verify_email()
+        │
+        └─→ UPDATE USER:
+            ├─ Query: db.users.findOne({email: "user@example.com"})
+            ├─ Update: db.users.updateOne(
+            │     {_id: user_id},
+            │     {$set: {is_verified: true}}
+            │   )
+            │
+            └─→ MARK TOKEN AS VERIFIED:
+                └─ db.email_verifications.updateOne(
+                     {token: "..."},
+                     {$set: {is_verified: true}}
+                   )
+
+FRONTEND (receives response)
+    └─→ Display: "Email verified! You can now login."
+        └─ User proceeds to login
+```
+
+### 3️⃣ Login Flow
+
+**User Action**: User enters email, password, and clicks "Login"
+
+```
+FRONTEND (index.html)
+    ↓
+    └─→ app.js → login()
+        └─ Sends POST to /api/auth/login with:
+            {
+              "email": "user@example.com",
+              "password": "SecurePass123!"
+            }
+
+BACKEND (routes/auth.py)
+    ↓
+    └─→ Receives login request
+        ├─ Call services/auth_service.py → authenticate_user()
+        │
+        └─→ FIND USER:
+            ├─ Query: db.users.findOne({email: "user@example.com"})
+            ├─ If not found → Return error "Invalid credentials"
+            │
+            └─→ CHECK EMAIL VERIFICATION:
+                ├─ If is_verified === false
+                │  → Return error "Please verify email first"
+                │
+                └─→ VERIFY PASSWORD:
+                    ├─ Compare hashed password using utils/password.py
+                    ├─ If not match → Return error "Invalid credentials"
+                    │
+                    └─→ CHECK 2FA STATUS:
+                        ├─ Query: db.two_factor_auth.findOne({user_id: ...})
+                        ├─ If two_factor_enabled === true
+                        │  → Generate TEMPORARY JWT token
+                        │  → Return requires_2fa: true
+                        │
+                        └─→ GENERATE JWT TOKEN:
+                            ├─ Use Flask-JWT-Extended
+                            ├─ Include: {user_id, email}
+                            ├─ Expire in: 1 hour
+                            └─ Return: {
+                                 success: true,
+                                 access_token: "eyJhbGc...",
+                                 user: {user_id, email},
+                                 requires_2fa: false
+                               }
+
+FRONTEND (receives response)
+    ↓
+    └─→ Check if requires_2fa === true
+        ├─ YES → Show 2FA verification form
+        └─ NO → Store JWT and show dashboard
+            ├─ localStorage.setItem('authToken', token)
+            ├─ localStorage.setItem('user', JSON.stringify(user))
+            └─ User is now logged in!
+```
+
+### 4️⃣ 2FA Setup Flow (Optional)
+
+**User Action**: User clicks "Enable 2FA" in settings
+
+```
+FRONTEND (index.html)
+    ↓
+    └─→ app.js → setup2FA()
+        └─ Sends POST to /api/auth/2fa/setup with:
+            Header: Authorization: Bearer eyJhbGc...
+
+BACKEND (routes/auth.py)
+    ↓
+    └─→ Receives 2FA setup request
+        ├─ Extract user_id from JWT token
+        └─ Call models/two_factor_auth.py → TwoFactorAuth.generate_secret()
+            │
+            ├─ Use pyotp library to generate secret:
+            │  Result: "JBSWY3DPEBLW64TMMQ======"
+            │
+            ├─ Create QR provisioning URI:
+            │  "otpauth://totp/user@example.com?secret=JBSWY3D..."
+            │
+            └─ Generate 10 backup codes:
+               Each: "BACKUP-CODE-123456"
+               
+        └─ Return:
+            {
+              success: true,
+              secret: "JBSWY3DPEBLW64TMMQ======",
+              provisioning_uri: "otpauth://...",
+              backup_codes: ["BACKUP-1", "BACKUP-2", ...]
+            }
+
+FRONTEND (receives response)
+    ↓
+    └─→ Display QR code from provisioning_uri
+        ├─ User scans with authenticator app (Google Auth, Authy, etc.)
+        ├─ User saves backup codes securely
+        └─ User enters 6-digit code from authenticator
+            └─ Sends POST to /api/auth/2fa/verify with:
+                {
+                  "secret": "JBSWY3DPEBLW64TMMQ======",
+                  "code": "123456",
+                  "backup_codes": ["BACKUP-1", ...]
+                }
+
+BACKEND (routes/auth.py)
+    ↓
+    └─→ Receives 2FA verification request
+        ├─ Extract user_id from JWT token
+        ├─ Verify 6-digit code using models/two_factor_auth.py
+        │  → pyotp.verify_totp(secret, code)
+        │  → Check with 30-second time window
+        │  ├─ If match → Code valid
+        │  └─ If not match → Return error
+        │
+        └─→ IF VALID:
+            ├─ INSERT into db.two_factor_auth:
+            │  {
+            │    user_id: ObjectId(...),
+            │    secret: "JBSWY3DPEBLW64TMMQ======",
+            │    is_enabled: true,
+            │    backup_codes: [hashed_code1, hashed_code2, ...],
+            │    used_backup_codes: [],
+            │    created_at: 2026-01-18T...
+            │  }
+            │
+            └─→ UPDATE db.users:
+                {
+                  _id: user_id,
+                  two_factor_enabled: true
+                }
+
+FRONTEND (receives response)
+    └─→ Display: "2FA enabled successfully!"
+        └─ Backup codes available for download
+```
+
+### 5️⃣ Login WITH 2FA Enabled
+
+**Same as Step 3️⃣ LOGIN, but with 2FA check:**
+
+```
+After password verified:
+
+BACKEND checks:
+    └─→ Query db.two_factor_auth for user
+        ├─ If two_factor_enabled === true
+        ├─ Generate TEMPORARY JWT token (limited scope)
+        └─ Return: {
+             success: true,
+             access_token: "temporary_jwt_token",
+             requires_2fa: true
+           }
+
+FRONTEND:
+    └─→ Show 2FA code input form
+        ├─ User enters 6-digit code from authenticator
+        │  OR enters one of backup codes
+        └─ Sends POST to /api/auth/2fa/verify-code with:
+            {
+              "access_token": "temporary_jwt_token",
+              "code": "123456",
+              "use_backup": false
+            }
+
+BACKEND:
+    ↓
+    └─→ Verify code using models/two_factor_auth.py
+        ├─ pyotp.verify_totp(secret, code)
+        │  OR check backup code list
+        ├─ If backup code used → Move to used_backup_codes
+        └─ If valid:
+            └─→ Generate FULL JWT token (unrestricted)
+                └─ Return: {
+                     success: true,
+                     access_token: "full_jwt_token",
+                     user: {user_id, email}
+                   }
+
+FRONTEND:
+    └─→ Store token in localStorage
+        ├─ localStorage.setItem('authToken', full_token)
+        └─ Show dashboard - User fully logged in!
+```
+
+### 6️⃣ Token Refresh Flow
+
+**Automatically happens**: When token about to expire
+
+```
+FRONTEND (background timer)
+    ↓
+    └─→ app.js checks token expiry
+        ├─ When 50 minutes have passed → Refresh
+        └─ Sends POST to /api/session/refresh with:
+            Header: Authorization: Bearer eyJhbGc...
+
+BACKEND (routes/session.py)
+    ↓
+    └─→ Receives refresh request
+        ├─ Extract user_id from current JWT token
+        ├─ Verify token is still valid
+        └─ Generate NEW JWT token with same user_id
+            └─ Expire in: 1 hour from now
+            └─ Return: {
+                 success: true,
+                 access_token: "new_jwt_token"
+               }
+
+FRONTEND:
+    └─→ Update stored token
+        ├─ localStorage.setItem('authToken', new_token)
+        └─ User stays logged in without re-entering credentials!
+```
+
+### 7️⃣ Logout Flow
+
+**User Action**: User clicks "Logout" button
+
+```
+FRONTEND (index.html)
+    ↓
+    └─→ app.js → logout()
+        ├─ Get JWT token from localStorage
+        ├─ Send POST to /api/session/logout (optional):
+        │  Header: Authorization: Bearer eyJhbGc...
+        │
+        └─→ Clear all session data:
+            ├─ localStorage.removeItem('authToken')
+            ├─ localStorage.removeItem('user')
+            ├─ localStorage.removeItem('tempToken')
+            └─ Switch to login form
+
+BACKEND (routes/session.py)
+    ↓
+    └─→ Receives logout request
+        ├─ Extract user_id from JWT (optional logging)
+        └─ Return: {success: true}
+        
+NOTE: JWT tokens are stateless - no server session to delete
+      Old tokens still valid until expiry, but frontend cleared
+
+USER STATE: ✅ Logged out
+    └─→ Must login again to access dashboard
+```
+
+---
+
+### 📊 Data Flow Diagram
+
+```
+┌─────────────┐         ┌──────────────────┐        ┌──────────────┐
+│  FRONTEND   │         │     BACKEND      │        │  MONGODB     │
+│ (Browser)   │         │  (Flask Server)  │        │  (Cloud)     │
+└──────┬──────┘         └────────┬─────────┘        └──────┬───────┘
+       │                         │                         │
+       │─ Register ─────────────→│                         │
+       │                         │─ Validate ──────────────│
+       │                         │─ Create User ──────────→│
+       │                         │                         │
+       │ ← Response ─────────────│                         │
+       │ (Email Verification)    │                         │
+       │                         │─ Create Token ────────→│
+       │                         │                         │
+       │─ Click Email Link ─────→│                         │
+       │                         │─ Verify Token ────────→│
+       │                         │─ Update User ─────────→│
+       │ ← Verification OK ──────│                         │
+       │                         │                         │
+       │─ Login ────────────────→│                         │
+       │                         │─ Find User ───────────→│
+       │                         │← User Data ───────────│
+       │                         │─ Verify Password ─────→│
+       │ ← JWT Token ───────────│ ← Password OK ────────|
+       │ (Stored in Storage)     │                         │
+       │                         │                         │
+       │─ API Call + JWT ───────→│ (Authenticated)        │
+       │ (All subsequent requests)                        │
+       │                         │                         │
+       │─ Logout ──────────────→│                         │
+       │ (Clear LocalStorage)    │                         │
+       │                         │                         │
+```
+
+---
+
+### 🔐 Security in Each Step
+
+| Step | Security Measure |
+|------|-----------------|
+| **Registration** | Password hashing (bcrypt), input validation, email uniqueness check |
+| **Email Verification** | 32-byte secure token, 24-hour expiry, TTL index auto-deletion |
+| **Password Storage** | bcrypt with 12 salt rounds |
+| **Login** | Email verification check, password comparison, JWT generation |
+| **JWT Tokens** | HMAC-SHA256 signing, 1-hour expiry, stateless design |
+| **2FA** | TOTP time-based codes, 30-second window, backup codes (one-time use) |
+| **Token Refresh** | Requires valid existing token, new token issued with new expiry |
+| **Logout** | LocalStorage cleared, frontend session terminated |
+
+---
+
+## �📚 Documentation
 
 - **Complete Setup**: See [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - **Backend Docs**: See [backend/README.md](backend/README.md)
