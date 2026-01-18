@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Emission Audit Calculator | Sustainability</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .audit-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .audit-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .audit-header h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .audit-form {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scope-badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .scope-description {
+            background: #ecf0f1;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #555;
+            border-left: 3px solid #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
+        }
+
+        .emission-factor {
+            font-size: 11px;
+            color: #95a5a6;
+            font-style: italic;
+            margin-top: 2px;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .result-value {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+
+        .total-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #2ecc71;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .total-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .total-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .total-unit {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-form .form-group {
+            margin: 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        .back-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .audit-form {
+                padding: 20px;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .total-value {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <a href="carbon-audit.html" class="back-link">← Back to Overview</a>
+
+        <div class="audit-header">
+            <h1>🌍 Carbon Emission Audit Calculator</h1>
+            <p>Enter your organization's data across three emissions scopes</p>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <form class="audit-form" id="carbonAuditForm">
+            <!-- SCOPE 1: Direct Emissions -->
+            <div class="form-section">
+                <h2>
+                    <span class="scope-badge">SCOPE 1</span>
+                    Direct Emissions (Fuel Combustion & Equipment)
+                </h2>
+                <div class="scope-description">
+                    Emissions from sources owned or controlled by your organization (company vehicles, on-site generation, manufacturing equipment)
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="naturalGasConsumption">Natural Gas (m³/year)</label>
+                        <input type="number" id="naturalGasConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">2.04 kg CO₂/m³</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dieselConsumption">Diesel (Liters/year)</label>
+                        <input type="number" id="dieselConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">2.68 kg CO₂/L</div>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="petrolConsumption">Petrol/Gasoline (Liters/year)</label>
+                        <input type="number" id="petrolConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">2.31 kg CO₂/L</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lpgConsumption">LPG (kg/year)</label>
+                        <input type="number" id="lpgConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">3.02 kg CO₂/kg</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCOPE 2: Indirect Emissions (Energy) -->
+            <div class="form-section">
+                <h2>
+                    <span class="scope-badge" style="background: #e74c3c;">SCOPE 2</span>
+                    Indirect Emissions (Purchased Energy)
+                </h2>
+                <div class="scope-description">
+                    Emissions from purchased electricity, steam, or cooling consumed by your organization
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="electricityConsumption">Electricity (kWh/year)</label>
+                        <input type="number" id="electricityConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.82 kg CO₂/kWh</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="renewablePercentage">Renewable Energy %</label>
+                        <input type="number" id="renewablePercentage" step="0.01" min="0" max="100" placeholder="0" value="0">
+                        <div class="emission-factor">Reduces electricity emissions</div>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="steamConsumption">Steam (GJ/year)</label>
+                        <input type="number" id="steamConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.067 kg CO₂/MJ</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="coolingConsumption">Cooling (GJ/year)</label>
+                        <input type="number" id="coolingConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.058 kg CO₂/MJ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCOPE 3: Other Indirect Emissions -->
+            <div class="form-section">
+                <h2>
+                    <span class="scope-badge" style="background: #f39c12;">SCOPE 3</span>
+                    Other Indirect Emissions (Supply Chain & Activities)
+                </h2>
+                <div class="scope-description">
+                    Emissions from business travel, waste, water, supply chain, and employee commuting
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="businessTravel">Business Travel (km/year)</label>
+                        <input type="number" id="businessTravel" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.25 kg CO₂/km</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="waterConsumption">Water (m³/year)</label>
+                        <input type="number" id="waterConsumption" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.34 kg CO₂/m³</div>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="wasteDisposal">Waste to Landfill (tonnes/year)</label>
+                        <input type="number" id="wasteDisposal" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">500 kg CO₂/tonne</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="wasteRecycling">Waste Recycled (tonnes/year)</label>
+                        <input type="number" id="wasteRecycling" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">50 kg CO₂/tonne (avoided)</div>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="employeeCommute">Employee Commuting (km/year)</label>
+                        <input type="number" id="employeeCommute" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">0.21 kg CO₂/km</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="procuredProducts">Procured Goods (₹ Lakhs/year)</label>
+                        <input type="number" id="procuredProducts" step="0.01" min="0" placeholder="0" value="0">
+                        <div class="emission-factor">25 kg CO₂/₹ Lakh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="calculateCarbonEmissions()">
+                    ⚡ Calculate Emissions
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Reset Form
+                </button>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section">
+            <h2 style="margin-top: 0; color: #333; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px;">
+                📊 Emission Breakdown
+            </h2>
+
+            <!-- Scope 1 -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #3498db; font-size: 14px; margin-bottom: 10px;">SCOPE 1 - Direct Emissions</h3>
+                <div class="result-item">
+                    <span class="result-label">Natural Gas</span>
+                    <span class="result-value"><span id="resultNaturalGas">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Diesel</span>
+                    <span class="result-value"><span id="resultDiesel">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Petrol</span>
+                    <span class="result-value"><span id="resultPetrol">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">LPG</span>
+                    <span class="result-value"><span id="resultLPG">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item" style="background: #f0f0f0; padding: 10px 12px; border-radius: 4px; margin-top: 8px; font-weight: bold;">
+                    <span>Scope 1 Total</span>
+                    <span class="result-value" style="font-size: 16px;"><span id="totalScope1">0</span> kg CO₂</span>
+                </div>
+            </div>
+
+            <!-- Scope 2 -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #e74c3c; font-size: 14px; margin-bottom: 10px;">SCOPE 2 - Indirect Energy Emissions</h3>
+                <div class="result-item">
+                    <span class="result-label">Electricity (Before Renewable)</span>
+                    <span class="result-value"><span id="resultElectricityBefore">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Renewable Offset</span>
+                    <span class="result-value" style="color: #2ecc71;">-<span id="resultRenewableOffset">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Electricity (After Offset)</span>
+                    <span class="result-value"><span id="resultElectricity">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Steam</span>
+                    <span class="result-value"><span id="resultSteam">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Cooling</span>
+                    <span class="result-value"><span id="resultCooling">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item" style="background: #f0f0f0; padding: 10px 12px; border-radius: 4px; margin-top: 8px; font-weight: bold;">
+                    <span>Scope 2 Total</span>
+                    <span class="result-value" style="font-size: 16px;"><span id="totalScope2">0</span> kg CO₂</span>
+                </div>
+            </div>
+
+            <!-- Scope 3 -->
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #f39c12; font-size: 14px; margin-bottom: 10px;">SCOPE 3 - Other Indirect Emissions</h3>
+                <div class="result-item">
+                    <span class="result-label">Business Travel</span>
+                    <span class="result-value"><span id="resultBusinessTravel">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Water</span>
+                    <span class="result-value"><span id="resultWater">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Waste (Landfill)</span>
+                    <span class="result-value"><span id="resultWasteLandfill">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Waste Recycled (Avoided)</span>
+                    <span class="result-value" style="color: #2ecc71;">-<span id="resultWasteRecycled">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Employee Commuting</span>
+                    <span class="result-value"><span id="resultCommute">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Procured Goods</span>
+                    <span class="result-value"><span id="resultProcured">0</span> kg CO₂</span>
+                </div>
+                <div class="result-item" style="background: #f0f0f0; padding: 10px 12px; border-radius: 4px; margin-top: 8px; font-weight: bold;">
+                    <span>Scope 3 Total</span>
+                    <span class="result-value" style="font-size: 16px;"><span id="totalScope3">0</span> kg CO₂</span>
+                </div>
+            </div>
+
+            <!-- Grand Total -->
+            <div class="total-section">
+                <div class="total-label">Total GHG Emissions (All Scopes)</div>
+                <div class="total-value">
+                    <span id="grandTotal">0</span>
+                    <span class="total-unit">kg CO₂</span>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #7f8c8d;">
+                    = <span id="totalTonnes">0</span> tonnes CO₂
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="showSaveModal()">
+                    💾 Save Report
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="downloadReport()">
+                    📥 Download CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Modal -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Save Carbon Audit Report</h2>
+                <button class="modal-close" onclick="closeSaveModal()">&times;</button>
+            </div>
+            <form class="modal-form" id="saveForm">
+                <div class="form-group">
+                    <label for="projectName">Project Name *</label>
+                    <input type="text" id="projectName" placeholder="e.g., 2026 Sustainability Audit" required>
+                </div>
+                <div class="form-group">
+                    <label for="auditDate">Audit Date *</label>
+                    <input type="date" id="auditDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="auditPurpose">Purpose/Notes *</label>
+                    <input type="text" id="auditPurpose" placeholder="e.g., Quarterly assessment, Compliance" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeSaveModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAuditReport()">Save Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="audit-api.js"></script>
+    <script>
+        let auditAPI;
+        let calculatedEmissions = null;
+
+        function calculateCarbonEmissions() {
+            const naturalGas = parseFloat(document.getElementById('naturalGasConsumption').value) || 0;
+            const diesel = parseFloat(document.getElementById('dieselConsumption').value) || 0;
+            const petrol = parseFloat(document.getElementById('petrolConsumption').value) || 0;
+            const lpg = parseFloat(document.getElementById('lpgConsumption').value) || 0;
+            const electricity = parseFloat(document.getElementById('electricityConsumption').value) || 0;
+            const renewablePercent = parseFloat(document.getElementById('renewablePercentage').value) || 0;
+            const steam = parseFloat(document.getElementById('steamConsumption').value) || 0;
+            const cooling = parseFloat(document.getElementById('coolingConsumption').value) || 0;
+            const businessTravel = parseFloat(document.getElementById('businessTravel').value) || 0;
+            const water = parseFloat(document.getElementById('waterConsumption').value) || 0;
+            const wasteLandfill = parseFloat(document.getElementById('wasteDisposal').value) || 0;
+            const wasteRecycled = parseFloat(document.getElementById('wasteRecycling').value) || 0;
+            const commute = parseFloat(document.getElementById('employeeCommute').value) || 0;
+            const procured = parseFloat(document.getElementById('procuredProducts').value) || 0;
+
+            // Scope 1
+            const naturalGasEmissions = naturalGas * 2.04;
+            const dieselEmissions = diesel * 2.68;
+            const petrolEmissions = petrol * 2.31;
+            const lpgEmissions = lpg * 3.02;
+            const scope1Total = naturalGasEmissions + dieselEmissions + petrolEmissions + lpgEmissions;
+
+            // Scope 2
+            const electricityBefore = electricity * 0.82;
+            const renewableOffset = (electricityBefore * renewablePercent) / 100;
+            const electricityAfter = electricityBefore - renewableOffset;
+            const steamEmissions = steam * 67;
+            const coolingEmissions = cooling * 58;
+            const scope2Total = electricityAfter + steamEmissions + coolingEmissions;
+
+            // Scope 3
+            const travelEmissions = businessTravel * 0.25;
+            const waterEmissions = water * 0.34;
+            const wasteLandfillEmissions = wasteLandfill * 500000;
+            const wasteRecycledAvoid = wasteRecycled * 50000;
+            const commuteEmissions = commute * 0.21;
+            const procuredEmissions = procured * 2500000;
+            const scope3Total = travelEmissions + waterEmissions + wasteLandfillEmissions - wasteRecycledAvoid + commuteEmissions + procuredEmissions;
+
+            const grandTotal = scope1Total + scope2Total + scope3Total;
+
+            calculatedEmissions = {
+                scope1: {naturalGasEmissions, dieselEmissions, petrolEmissions, lpgEmissions, total: scope1Total},
+                scope2: {electricity: electricityAfter, electricityBefore, renewableOffset, steam: steamEmissions, cooling: coolingEmissions, total: scope2Total},
+                scope3: {businessTravel: travelEmissions, water: waterEmissions, wasteLandfill: wasteLandfillEmissions, wasteRecycled: wasteRecycledAvoid, commute: commuteEmissions, procured: procuredEmissions, total: scope3Total},
+                grandTotal,
+                inputData: {naturalGas, diesel, petrol, lpg, electricity, renewablePercent, steam, cooling, businessTravel, water, wasteLandfill, wasteRecycled, commute, procured}
+            };
+
+            // Display
+            document.getElementById('resultNaturalGas').textContent = naturalGasEmissions.toFixed(2);
+            document.getElementById('resultDiesel').textContent = dieselEmissions.toFixed(2);
+            document.getElementById('resultPetrol').textContent = petrolEmissions.toFixed(2);
+            document.getElementById('resultLPG').textContent = lpgEmissions.toFixed(2);
+            document.getElementById('totalScope1').textContent = scope1Total.toFixed(2);
+
+            document.getElementById('resultElectricityBefore').textContent = electricityBefore.toFixed(2);
+            document.getElementById('resultRenewableOffset').textContent = renewableOffset.toFixed(2);
+            document.getElementById('resultElectricity').textContent = electricityAfter.toFixed(2);
+            document.getElementById('resultSteam').textContent = steamEmissions.toFixed(2);
+            document.getElementById('resultCooling').textContent = coolingEmissions.toFixed(2);
+            document.getElementById('totalScope2').textContent = scope2Total.toFixed(2);
+
+            document.getElementById('resultBusinessTravel').textContent = travelEmissions.toFixed(2);
+            document.getElementById('resultWater').textContent = waterEmissions.toFixed(2);
+            document.getElementById('resultWasteLandfill').textContent = wasteLandfillEmissions.toFixed(2);
+            document.getElementById('resultWasteRecycled').textContent = wasteRecycledAvoid.toFixed(2);
+            document.getElementById('resultCommute').textContent = commuteEmissions.toFixed(2);
+            document.getElementById('resultProcured').textContent = procuredEmissions.toFixed(2);
+            document.getElementById('totalScope3').textContent = scope3Total.toFixed(2);
+
+            document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+            document.getElementById('totalTonnes').textContent = (grandTotal / 1000).toFixed(2);
+
+            document.getElementById('resultsSection').classList.add('show');
+            showMessage('✅ Calculations completed!', 'success');
+        }
+
+        function resetForm() {
+            document.getElementById('carbonAuditForm').reset();
+            document.getElementById('resultsSection').classList.remove('show');
+            calculatedEmissions = null;
+            showMessage('Form reset', 'success');
+        }
+
+        function showSaveModal() {
+            if (!calculatedEmissions) {
+                showMessage('❌ Calculate emissions first', 'error');
+                return;
+            }
+            document.getElementById('auditDate').valueAsDate = new Date();
+            document.getElementById('saveModal').classList.add('show');
+        }
+
+        function closeSaveModal() {
+            document.getElementById('saveModal').classList.remove('show');
+            document.getElementById('saveForm').reset();
+        }
+
+        async function saveAuditReport() {
+            const projectName = document.getElementById('projectName').value;
+            const auditDate = document.getElementById('auditDate').value;
+            const auditPurpose = document.getElementById('auditPurpose').value;
+
+            if (!projectName || !auditDate || !auditPurpose) {
+                showMessage('❌ Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, -5);
+                const reportId = `CE-${timestamp}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+                const auditData = {
+                    report_id: reportId,
+                    project_name: projectName,
+                    audit_date: auditDate,
+                    purpose: auditPurpose,
+                    ...calculatedEmissions,
+                    created_at: new Date().toISOString()
+                };
+
+                const response = await auditAPI.createCarbonAudit(projectName, auditDate, auditData);
+
+                if (response.success) {
+                    showMessage('✅ Report saved! ID: ' + reportId, 'success');
+                    closeSaveModal();
+                    document.getElementById('carbonAuditForm').reset();
+                    document.getElementById('resultsSection').classList.remove('show');
+                    calculatedEmissions = null;
+                } else {
+                    showMessage('❌ ' + response.message, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ ' + error.message, 'error');
+            }
+        }
+
+        function downloadReport() {
+            if (!calculatedEmissions) {
+                showMessage('❌ No report', 'error');
+                return;
+            }
+
+            const r = calculatedEmissions;
+            const csv = `Carbon Emission Audit Report\nGenerated: ${new Date().toLocaleString()}\n\nScope 1 Emissions\nNatural Gas,${r.scope1.naturalGasEmissions.toFixed(2)}\nDiesel,${r.scope1.dieselEmissions.toFixed(2)}\nPetrol,${r.scope1.petrolEmissions.toFixed(2)}\nLPG,${r.scope1.lpgEmissions.toFixed(2)}\nScope 1 Total,${r.scope1.total.toFixed(2)}\n\nScope 2 Emissions\nElectricity,${r.scope2.electricity.toFixed(2)}\nSteam,${r.scope2.steam.toFixed(2)}\nCooling,${r.scope2.cooling.toFixed(2)}\nScope 2 Total,${r.scope2.total.toFixed(2)}\n\nScope 3 Emissions\nBusiness Travel,${r.scope3.businessTravel.toFixed(2)}\nWater,${r.scope3.water.toFixed(2)}\nWaste Landfill,${r.scope3.wasteLandfill.toFixed(2)}\nEmployee Commuting,${r.scope3.commute.toFixed(2)}\nScope 3 Total,${r.scope3.total.toFixed(2)}\n\nGRAND TOTAL,${r.grandTotal.toFixed(2)} kg CO2\nTONNES,${(r.grandTotal / 1000).toFixed(2)}`;
+
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = `Carbon-Audit-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            showMessage('✅ Report downloaded', 'success');
+        }
+
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = `message show ${type}`;
+            setTimeout(() => box.classList.remove('show'), 5000);
+        }
+
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                auditAPI = new AuditAPI();
+            }
+        });
+    </script>
+</body>
+</html>
